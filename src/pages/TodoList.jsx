@@ -1,80 +1,33 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useEffect } from "react";
+import { useTodos } from "../context/TodoContext";
 
 export function TodoApp() {
-  const [todos, setTodos] = useState(() => {
-    const saved = localStorage.getItem("todos");
-    return saved ? JSON.parse(saved) : [];
-  });
-  const [isAdding, setIsAdding] = useState(false);
-  const [editingId, setEditingId] = useState(null);
-  const inputRef = useRef(null);
-  const editRef = useRef(null);
+  const {
+    todos,
+    isAdding,
+    setIsAdding,
+    editingId,
+    inputRef,
+    editRef,
+    toggleTodo,
+    deleteTodo,
+    startEdit,
+    saveEdit,
+    cancelEdit,
+    addTodo,
+  } = useTodos();
 
   useEffect(() => {
-    localStorage.setItem("todos", JSON.stringify(todos));
-  }, [todos]);
+    if (isAdding && inputRef.current) inputRef.current.focus();
+  }, [isAdding , inputRef]);
 
-  useEffect(() => {
-    if (isAdding && inputRef.current) {
-      inputRef.current.focus();
-    }
-  }, [isAdding]);
-
+  // Fokus otomatis ke input edit
   useEffect(() => {
     if (editingId && editRef.current) {
       editRef.current.focus();
       editRef.current.select();
     }
-  }, [editingId]);
-
-  const toggleTodo = (id) => {
-    setTodos(
-      todos.map((todo) =>
-        todo.id === id ? { ...todo, completed: !todo.completed } : todo
-      )
-    );
-  };
-
-  const deleteTodo = (id) => {
-    setTodos(todos.filter((todo) => todo.id !== id));
-  };
-
-  const startEdit = (id) => {
-    setEditingId(id);
-  };
-
-  const saveEdit = (id) => {
-    const text = editRef.current?.value.trim();
-    if (text) {
-      setTodos(
-        todos.map((todo) => (todo.id === id ? { ...todo, text } : todo))
-      );
-    }
-    setEditingId(null);
-  };
-
-  const cancelEdit = () => {
-    setEditingId(null);
-  };
-
-  const addTodo = (e) => {
-    if (e) e.preventDefault();
-    const text = inputRef.current?.value.trim();
-    if (text) {
-      setTodos([
-        ...todos,
-        {
-          id: Date.now(),
-          text,
-          completed: false,
-        },
-      ]);
-      if (inputRef.current) {
-        inputRef.current.value = "";
-      }
-      setIsAdding(false);
-    }
-  };
+  }, [editingId , editRef]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-100 via-blue-50 to-purple-50 flex items-center justify-center p-4">
@@ -96,6 +49,7 @@ export function TodoApp() {
                 key={todo.id}
                 className="flex items-center gap-4 text-xl group hover:bg-gray-50 p-2 rounded-lg transition"
               >
+                {/* Check button */}
                 <button
                   onClick={() => toggleTodo(todo.id)}
                   className="flex-shrink-0"
@@ -125,6 +79,7 @@ export function TodoApp() {
                   </div>
                 </button>
 
+                {/* Input edit */}
                 {editingId === todo.id ? (
                   <form action="">
                     <input
@@ -133,19 +88,13 @@ export function TodoApp() {
                       defaultValue={todo.text}
                       className="flex-1 text-gray-700 text-xl outline-none bg-transparent border-b-2 border-purple-400"
                       onKeyPress={(e) => {
-                        if (e.key === "Enter") {
-                          saveEdit(todo.id);
-                        }
+                        if (e.key === "Enter") saveEdit(todo.id);
                       }}
                       onKeyDown={(e) => {
-                        if (e.key === "Escape") {
-                          cancelEdit();
-                        }
+                        if (e.key === "Escape") cancelEdit();
                       }}
                       onBlur={() => {
-                        setTimeout(() => {
-                          saveEdit(todo.id);
-                        }, 200);
+                        setTimeout(() => saveEdit(todo.id), 200);
                       }}
                     />
                   </form>
@@ -159,7 +108,7 @@ export function TodoApp() {
                   </span>
                 )}
 
-                {/* button rename */}
+                {/* Button rename */}
                 {!todo.completed && editingId !== todo.id && (
                   <button
                     title="Rename"
@@ -170,7 +119,7 @@ export function TodoApp() {
                   </button>
                 )}
 
-                {/* button delete */}
+                {/* Button delete */}
                 {editingId !== todo.id && (
                   <button
                     title="Delete"
@@ -197,9 +146,7 @@ export function TodoApp() {
                   placeholder="Add new task..."
                   className="flex-1 text-gray-700 text-xl outline-none bg-transparent"
                   onKeyPress={(e) => {
-                    if (e.key === "Enter") {
-                      addTodo(e);
-                    }
+                    if (e.key === "Enter") addTodo(e);
                   }}
                   onBlur={() => {
                     setTimeout(() => {

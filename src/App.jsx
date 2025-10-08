@@ -1,10 +1,11 @@
-import React from 'react'
-import { TodoApp } from './pages/TodoList'
+import React from "react";
+import { TodoApp } from "./pages/TodoList";
+import { TodoProvider } from "./context/TodoContext";
 
 export const App = () => {
   return (
-    <>
-    <TodoApp/>
-    </>
-  )
-}
+    <TodoProvider>
+      <TodoApp />
+    </TodoProvider>
+  );
+};
